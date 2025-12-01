@@ -42,10 +42,50 @@ try:
         print("✓ Added 'profile_picture' column")
     else:
         print("✓ 'profile_picture' column already exists")
+
+    # Add education column if missing
+    if 'education' not in columns:
+        print("Adding 'education' column...")
+        cursor.execute("ALTER TABLE lawyer_profile ADD COLUMN education VARCHAR(255) DEFAULT ''")
+        conn.commit()
+        print("✓ Added 'education' column")
+    else:
+        print("✓ 'education' column already exists")
+
+    # Add age column if missing
+    if 'age' not in columns:
+        print("Adding 'age' column...")
+        cursor.execute("ALTER TABLE lawyer_profile ADD COLUMN age INTEGER DEFAULT 0")
+        conn.commit()
+        print("✓ Added 'age' column")
+    else:
+        print("✓ 'age' column already exists")
+
+    # Add city column if missing
+    if 'city' not in columns:
+        print("Adding 'city' column...")
+        cursor.execute("ALTER TABLE lawyer_profile ADD COLUMN city VARCHAR(120) DEFAULT ''")
+        conn.commit()
+        print("✓ Added 'city' column")
+    else:
+        print("✓ 'city' column already exists")
+
+    # Add case_success_rate column if missing
+    if 'case_success_rate' not in columns:
+        print("Adding 'case_success_rate' column...")
+        cursor.execute("ALTER TABLE lawyer_profile ADD COLUMN case_success_rate REAL DEFAULT 0.0")
+        conn.commit()
+        print("✓ Added 'case_success_rate' column")
+    else:
+        print("✓ 'case_success_rate' column already exists")
     
     # Update existing records with default values
     cursor.execute("UPDATE lawyer_profile SET rating = 0.0 WHERE rating IS NULL")
     cursor.execute("UPDATE lawyer_profile SET profile_picture = 'default-avatar.png' WHERE profile_picture IS NULL")
+    cursor.execute("UPDATE lawyer_profile SET education = '' WHERE education IS NULL")
+    cursor.execute("UPDATE lawyer_profile SET age = 0 WHERE age IS NULL")
+    cursor.execute("UPDATE lawyer_profile SET city = '' WHERE city IS NULL")
+    cursor.execute("UPDATE lawyer_profile SET case_success_rate = 0.0 WHERE case_success_rate IS NULL")
     conn.commit()
     
     print("\n✓ Migration completed successfully!")
@@ -55,4 +95,5 @@ except Exception as e:
     conn.rollback()
 finally:
     conn.close()
+
 

@@ -189,6 +189,7 @@ def lawyer_matches(issue_id):
 @main_bp.route("/start_chat/<int:issue_id>/<int:lawyer_id>", methods=["POST"])
 @login_required
 def start_chat(issue_id, lawyer_id):
+    """Create (or reuse) a chat between the current user and the selected lawyer."""
     issue = Issue.query.get_or_404(issue_id)
     if issue.user_id != current_user.id:
         flash("You do not have access to this issue.", "error")
@@ -207,6 +208,38 @@ def start_chat(issue_id, lawyer_id):
         db.session.add(chat)
         db.session.commit()
 
+    return redirect(url_for("main.chat_view", chat_id=chat.id))
+
+
+@main_bp.route("/start_chat_and_call/<int:issue_id>/<int:lawyer_id>", methods=["POST"])
+@login_required
+def start_chat_and_call(issue_id, lawyer_id):
+    """Create a chat and immediately generate a Jitsi link, then redirect to the chat."""
+    issue = Issue.query.get_or_404(issue_id)
+    if issue.user_id != current_user.id:
+        flash("You do not have access to this issue.", "error")
+        return redirect(url_for("main.user_dashboard"))
+
+    lawyer = User.query.get_or_404(lawyer_id)
+    if not lawyer.is_lawyer:
+        flash("Selected user is not a lawyer.", "error")
+        return redirect(url_for("main.lawyer_matches", issue_id=issue.id))
+
+    chat = Chat.query.filter_by(
+        user_id=current_user.id, lawyer_id=lawyer.id, issue_id=issue.id
+    ).first()
+    if not chat:
+        chat = Chat(user_id=current_user.id, lawyer_id=lawyer.id, issue_id=issue.id)
+        db.session.add(chat)
+        db.session.commit()
+
+    # Ensure a Jitsi link exists
+    if not chat.jitsi_link:
+        random_string = secrets.token_urlsafe(10)
+        chat.jitsi_link = f"https://meet.jit.si/{random_string}"
+        db.session.commit()
+
+    flash("Chat started and video meeting link generated.", "success")
     return redirect(url_for("main.chat_view", chat_id=chat.id))
 
 
@@ -259,6 +292,7 @@ def generate_jitsi_link(chat_id):
 
     flash("Video call link generated.", "success")
     return redirect(url_for("main.chat_view", chat_id=chat.id))
+
 
 
 

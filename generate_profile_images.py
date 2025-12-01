@@ -89,3 +89,4 @@ if __name__ == "__main__":
         print("\nAlternatively, you can use placeholder images from a service like:")
         print("https://ui-avatars.com/api/?name=Lawyer+Name&size=200&background=random")
 
+

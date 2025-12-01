@@ -54,6 +54,10 @@ class LawyerProfile(db.Model):
     experience_description = db.Column(db.Text, nullable=False)
     rating = db.Column(db.Float, default=0.0, nullable=False)
     profile_picture = db.Column(db.String(255), default="default-avatar.png", nullable=False)
+    education = db.Column(db.String(255), default="", nullable=False)
+    age = db.Column(db.Integer, default=0, nullable=False)
+    city = db.Column(db.String(120), default="", nullable=False)
+    case_success_rate = db.Column(db.Float, default=0.0, nullable=False)
 
     user = db.relationship("User", back_populates="lawyer_profile")
 
