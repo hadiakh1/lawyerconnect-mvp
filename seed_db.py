@@ -20,6 +20,13 @@ SAMPLE_LAWYERS = [
         "age": 39,
         "city": "New York, NY",
         "case_success_rate": 0.89,
+        "hourly_rate": 350.0,
+        "fixed_rate_min": 2500.0,
+        "fixed_rate_max": 15000.0,
+        "accepts_contingency": False,
+        "max_cases": 12,
+        "current_cases": 3,
+        "is_available": True,
     },
     {
         "name": "Michael Chen",
@@ -33,6 +40,14 @@ SAMPLE_LAWYERS = [
         "age": 42,
         "city": "San Francisco, CA",
         "case_success_rate": 0.92,
+        "hourly_rate": 400.0,
+        "fixed_rate_min": 3000.0,
+        "fixed_rate_max": 20000.0,
+        "accepts_contingency": True,
+        "contingency_percentage": 0.30,
+        "max_cases": 10,
+        "current_cases": 2,
+        "is_available": True,
     },
     {
         "name": "Emily Rodriguez",
@@ -299,6 +314,20 @@ def seed_database():
             db.session.add(user)
             db.session.flush()
             
+            # Generate default pricing if not provided (based on rating and experience)
+            default_hourly = lawyer_data.get("hourly_rate")
+            if default_hourly is None:
+                # Base rate on rating: 200-500 per hour
+                default_hourly = 200 + (lawyer_data.get("rating", 4.0) - 3.0) * 100
+            
+            default_fixed_min = lawyer_data.get("fixed_rate_min")
+            if default_fixed_min is None:
+                default_fixed_min = default_hourly * 10  # 10 hours minimum
+            
+            default_fixed_max = lawyer_data.get("fixed_rate_max")
+            if default_fixed_max is None:
+                default_fixed_max = default_hourly * 40  # 40 hours maximum
+            
             # Create lawyer profile
             profile = LawyerProfile(
                 user_id=user.id,
@@ -310,6 +339,15 @@ def seed_database():
                 age=lawyer_data.get("age", 0),
                 city=lawyer_data.get("city", ""),
                 case_success_rate=lawyer_data.get("case_success_rate", 0.0),
+                # Availability and pricing
+                is_available=lawyer_data.get("is_available", True),
+                hourly_rate=default_hourly,
+                fixed_rate_min=default_fixed_min,
+                fixed_rate_max=default_fixed_max,
+                accepts_contingency=lawyer_data.get("accepts_contingency", False),
+                contingency_percentage=lawyer_data.get("contingency_percentage", 0.30 if lawyer_data.get("accepts_contingency", False) else 0.0),
+                max_cases=lawyer_data.get("max_cases", 10),
+                current_cases=lawyer_data.get("current_cases", 0),
             )
             db.session.add(profile)
             print(f"Added lawyer: {lawyer_data['name']}")

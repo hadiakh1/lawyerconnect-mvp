@@ -87,7 +87,9 @@ def login():
 
         user = User.query.filter_by(email=email).first()
         if user and user.check_password(password):
-            login_user(user)
+            login_user(user, remember=True)  # Remember user across browser sessions
+            from flask import session
+            session.permanent = True  # Make session permanent
             flash("Logged in successfully.", "success")
             if user.is_lawyer:
                 return redirect(url_for("main.lawyer_dashboard"))
@@ -145,9 +147,19 @@ def submit_issue():
         title = request.form.get("title")
         description = request.form.get("description")
         category = request.form.get("category")
+        
+        # Client profile fields for matching
+        budget_min = float(request.form.get("budget_min", 0) or 0)
+        budget_max = float(request.form.get("budget_max", 10000) or 10000)
+        urgency = request.form.get("urgency", "normal")
+        preferred_pricing = request.form.get("preferred_pricing", "hourly")
 
         if category not in ISSUE_CATEGORIES:
             flash("Invalid category.", "error")
+            return redirect(url_for("main.submit_issue"))
+        
+        if budget_min > budget_max:
+            flash("Minimum budget cannot be greater than maximum budget.", "error")
             return redirect(url_for("main.submit_issue"))
 
         issue = Issue(
@@ -155,6 +167,10 @@ def submit_issue():
             title=title,
             description=description,
             category=category,
+            budget_min=budget_min,
+            budget_max=budget_max,
+            urgency=urgency,
+            preferred_pricing=preferred_pricing,
         )
         db.session.add(issue)
         db.session.commit()
@@ -173,22 +189,42 @@ def lawyer_matches(issue_id):
         flash("You do not have access to this issue.", "error")
         return redirect(url_for("main.user_dashboard"))
 
-    # Match lawyers whose expertise includes the issue category
-    # Use explicit join with User table to ensure we get lawyers with valid user accounts
-    matching_lawyers = (
-        LawyerProfile.query.join(User, LawyerProfile.user_id == User.id)
-        .filter(
-            User.is_lawyer == True,
-            LawyerProfile.expertise_categories.like(f"%{issue.category}%")
-        )
-        .all()
-    )
+    # Use advanced matching algorithm
+    from .matching import match_lawyers_to_issue
     
-    # Debug: Log the count (remove in production)
-    print(f"Found {len(matching_lawyers)} lawyers for category: {issue.category}")
+    try:
+        # Get all available lawyers
+        all_lawyers = (
+            LawyerProfile.query.join(User, LawyerProfile.user_id == User.id)
+            .filter(User.is_lawyer == True)
+            .all()
+        )
+        
+        # Fallback if join fails
+        if not all_lawyers:
+            all_lawyers = [
+                lp for lp in LawyerProfile.query.all()
+                if lp.user and lp.user.is_lawyer
+            ]
+        
+        # Get matched lawyers with scores
+        matched_lawyers = match_lawyers_to_issue(issue, all_lawyers)
+        
+        # Filter to only show lawyers with score > 0 (or adjust threshold)
+        matched_lawyers = [(lawyer, score, breakdown) for lawyer, score, breakdown in matched_lawyers if score > 0]
+        
+        print(f"Found {len(matched_lawyers)} matched lawyers for issue: {issue.title}")
+        
+    except Exception as e:
+        print(f"Error in lawyer_matches: {e}")
+        import traceback
+        traceback.print_exc()
+        matched_lawyers = []
     
     return render_template(
-        "lawyer_matches.html", issue=issue, lawyers=matching_lawyers
+        "lawyer_matches.html", 
+        issue=issue, 
+        matched_lawyers=matched_lawyers  # Pass tuples of (lawyer, score, breakdown)
     )
 
 

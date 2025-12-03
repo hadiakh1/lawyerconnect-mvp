@@ -1,25 +1,25 @@
 {% extends "base.html" %}
 
 {% block content %}
-<h2 class="text-2xl font-semibold mb-4">Chat</h2>
+<h2 class="text-xl sm:text-2xl font-semibold mb-3 sm:mb-4 px-2 sm:px-0">Chat</h2>
 
-<div class="mb-4 text-sm">
+<div class="mb-3 sm:mb-4 text-xs sm:text-sm px-2 sm:px-0 space-y-1">
   <p>
     <span class="font-medium">You are:</span>
     {{ 'Lawyer' if current_user.is_lawyer else 'User' }}
   </p>
   <p>
     <span class="font-medium">Chat between:</span>
-    {{ chat.user.name }} (User) and {{ chat.lawyer.name }} (Lawyer)
+    <span class="break-words">{{ chat.user.name }} (User) and {{ chat.lawyer.name }} (Lawyer)</span>
   </p>
   {% if chat.issue %}
   <p>
-    <span class="font-medium">Issue:</span> {{ chat.issue.title }} ({{ chat.issue.category }})
+    <span class="font-medium">Issue:</span> <span class="break-words">{{ chat.issue.title }} ({{ chat.issue.category }})</span>
   </p>
   {% endif %}
 </div>
 
-<div class="mb-4 flex items-center justify-between">
+<div class="mb-3 sm:mb-4 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-2 px-2 sm:px-0">
   <div>
     {% if chat.jitsi_link %}
       <p class="text-sm">
@@ -42,7 +42,7 @@
   </form>
 </div>
 
-<div class="bg-white rounded-lg shadow-sm p-4 h-80 flex flex-col mb-4">
+<div class="bg-white rounded-lg shadow-sm p-3 sm:p-4 h-64 sm:h-80 flex flex-col mb-3 sm:mb-4 mx-2 sm:mx-0">
   <div class="flex-1 overflow-y-auto space-y-2 text-sm pr-2">
     {% for m in messages %}
       {% set is_me = (m.sender_id == current_user.id) %}
@@ -64,12 +64,12 @@
   </div>
 </div>
 
-<form method="post" class="flex items-center space-x-2">
+<form method="post" class="flex flex-col sm:flex-row items-stretch sm:items-center gap-2 px-2 sm:px-0">
   <textarea name="content" rows="2" required
             class="flex-1 border rounded px-3 py-2 text-sm"
             placeholder="Type your message..."></textarea>
   <button type="submit"
-          class="px-4 py-2 rounded-md bg-sky-600 text-white text-sm font-medium hover:bg-sky-700">
+          class="px-4 py-2 rounded-md bg-sky-600 text-white text-sm font-medium hover:bg-sky-700 whitespace-nowrap">
     Send
   </button>
 </form>

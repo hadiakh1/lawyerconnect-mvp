@@ -9,26 +9,26 @@
 </head>
 <body class="bg-slate-50 text-slate-900">
   <nav class="bg-slate-900 text-white">
-    <div class="max-w-5xl mx-auto flex items-center justify-between py-3 px-4">
+    <div class="max-w-5xl mx-auto flex flex-col sm:flex-row items-center justify-between py-3 px-4 gap-2 sm:gap-0">
       <a href="{{ url_for('main.index') }}" class="font-semibold text-lg">LawyerConnect</a>
-      <div class="space-x-4">
+      <div class="flex flex-wrap items-center justify-center gap-2 sm:gap-4 text-sm sm:text-base">
         {% if current_user.is_authenticated %}
           {% if current_user.is_lawyer %}
-            <a href="{{ url_for('main.lawyer_dashboard') }}" class="hover:underline">Dashboard</a>
+            <a href="{{ url_for('main.lawyer_dashboard') }}" class="hover:underline px-2 py-1">Dashboard</a>
           {% else %}
-            <a href="{{ url_for('main.user_dashboard') }}" class="hover:underline">Dashboard</a>
+            <a href="{{ url_for('main.user_dashboard') }}" class="hover:underline px-2 py-1">Dashboard</a>
           {% endif %}
-          <a href="{{ url_for('main.logout') }}" class="hover:underline">Logout</a>
+          <a href="{{ url_for('main.logout') }}" class="hover:underline px-2 py-1">Logout</a>
         {% else %}
-          <a href="{{ url_for('main.login') }}" class="hover:underline">Login</a>
-          <a href="{{ url_for('main.signup_user') }}" class="hover:underline">Sign Up (User)</a>
-          <a href="{{ url_for('main.signup_lawyer') }}" class="hover:underline">Sign Up (Lawyer)</a>
+          <a href="{{ url_for('main.login') }}" class="hover:underline px-2 py-1">Login</a>
+          <a href="{{ url_for('main.signup_user') }}" class="hover:underline px-2 py-1 text-xs sm:text-base">Sign Up (User)</a>
+          <a href="{{ url_for('main.signup_lawyer') }}" class="hover:underline px-2 py-1 text-xs sm:text-base">Sign Up (Lawyer)</a>
         {% endif %}
       </div>
     </div>
   </nav>
 
-  <main class="max-w-5xl mx-auto mt-8 px-4">
+  <main class="max-w-5xl mx-auto mt-4 sm:mt-8 px-3 sm:px-4 pb-8">
     {% with messages = get_flashed_messages(with_categories=true) %}
       {% if messages %}
         <div class="space-y-2 mb-4">

@@ -2,9 +2,9 @@
 
 {% block content %}
 <div class="max-w-6xl mx-auto">
-  <div class="mb-6">
-    <h2 class="text-3xl font-bold text-gray-800 mb-2">Matching Lawyers</h2>
-    <div class="bg-blue-50 border-l-4 border-blue-500 p-4 rounded">
+  <div class="mb-4 sm:mb-6">
+    <h2 class="text-2xl sm:text-3xl font-bold text-gray-800 mb-2 px-2 sm:px-0">Matching Lawyers</h2>
+    <div class="bg-blue-50 border-l-4 border-blue-500 p-3 sm:p-4 rounded mx-2 sm:mx-0">
       <p class="text-sm text-gray-700">
         <span class="font-semibold">Your Issue:</span> {{ issue.title }}
       </p>
@@ -17,12 +17,17 @@
     </div>
   </div>
 
-  {% if lawyers %}
-    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-      {% for profile in lawyers %}
+  {% if matched_lawyers %}
+    <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6 px-2 sm:px-0">
+      {% for profile, match_score, breakdown in matched_lawyers %}
       <div class="bg-white rounded-xl shadow-md hover:shadow-lg transition-shadow duration-200 overflow-hidden border border-gray-100">
         <!-- Profile Header -->
-        <div class="bg-gradient-to-r from-blue-500 to-indigo-600 p-6 text-center">
+        <div class="bg-gradient-to-r from-blue-500 to-indigo-600 p-6 text-center relative">
+          <!-- Match Score Badge -->
+          <div class="absolute top-2 right-2 bg-white/20 backdrop-blur-sm rounded-full px-3 py-1">
+            <span class="text-white font-bold text-sm">{{ "%.0f"|format(match_score) }}% Match</span>
+          </div>
+          
           <div class="flex justify-center mb-3">
             <img src="{{ url_for('static', filename=profile.profile_picture) }}" 
                  alt="{{ profile.user.name }}"
@@ -87,6 +92,49 @@
             </div>
           </div>
 
+          <!-- Match Breakdown -->
+          <div class="mb-4 p-3 bg-gray-50 rounded-lg">
+            <p class="text-xs font-semibold text-gray-500 uppercase tracking-wide mb-2">Match Details</p>
+            <div class="space-y-1 text-xs">
+              <div class="flex justify-between">
+                <span class="text-gray-600">Case Type:</span>
+                <span class="font-medium text-gray-800">{{ "%.0f"|format(breakdown.get('case_type', 0)) }}%</span>
+              </div>
+              <div class="flex justify-between">
+                <span class="text-gray-600">Specialization:</span>
+                <span class="font-medium text-gray-800">{{ "%.0f"|format(breakdown.get('specialization', 0)) }}%</span>
+              </div>
+              <div class="flex justify-between">
+                <span class="text-gray-600">Success Rate:</span>
+                <span class="font-medium text-gray-800">{{ "%.0f"|format(breakdown.get('success_rate', 0)) }}%</span>
+              </div>
+              <div class="flex justify-between">
+                <span class="text-gray-600">Availability:</span>
+                <span class="font-medium text-gray-800">{{ "%.0f"|format(breakdown.get('availability', 0)) }}%</span>
+              </div>
+              <div class="flex justify-between">
+                <span class="text-gray-600">Pricing:</span>
+                <span class="font-medium text-gray-800">{{ "%.0f"|format(breakdown.get('pricing', 0)) }}%</span>
+              </div>
+            </div>
+          </div>
+
+          <!-- Pricing Info -->
+          <div class="mb-4">
+            <p class="text-xs font-semibold text-gray-500 uppercase tracking-wide mb-1">Pricing</p>
+            <div class="text-xs text-gray-700 space-y-1">
+              {% if profile.hourly_rate > 0 %}
+              <p>Hourly: ${{ "%.0f"|format(profile.hourly_rate) }}/hr</p>
+              {% endif %}
+              {% if profile.fixed_rate_min > 0 or profile.fixed_rate_max > 0 %}
+              <p>Fixed: ${{ "%.0f"|format(profile.fixed_rate_min) }}{% if profile.fixed_rate_max > profile.fixed_rate_min %} - ${{ "%.0f"|format(profile.fixed_rate_max) }}{% endif %}</p>
+              {% endif %}
+              {% if profile.accepts_contingency %}
+              <p>Contingency: {{ "%.0f"|format(profile.contingency_percentage * 100) }}%</p>
+              {% endif %}
+            </div>
+          </div>
+
           <!-- Experience -->
           <div class="mb-4">
             <p class="text-xs font-semibold text-gray-500 uppercase tracking-wide mb-2">Experience</p>
@@ -114,7 +162,7 @@
       </div>
       {% endfor %}
     </div>
-  {% else %}
+  {% elif matched_lawyers is defined and matched_lawyers|length == 0 %}
     <div class="bg-yellow-50 border border-yellow-200 rounded-lg p-8 text-center">
       <svg class="w-16 h-16 text-yellow-400 mx-auto mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"/>

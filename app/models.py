@@ -58,11 +58,24 @@ class LawyerProfile(db.Model):
     age = db.Column(db.Integer, default=0, nullable=False)
     city = db.Column(db.String(120), default="", nullable=False)
     case_success_rate = db.Column(db.Float, default=0.0, nullable=False)
+    # Availability and pricing fields
+    is_available = db.Column(db.Boolean, default=True, nullable=False)  # Available for new cases
+    hourly_rate = db.Column(db.Float, default=0.0, nullable=False)  # Hourly rate in USD
+    fixed_rate_min = db.Column(db.Float, default=0.0, nullable=False)  # Minimum fixed fee
+    fixed_rate_max = db.Column(db.Float, default=0.0, nullable=False)  # Maximum fixed fee
+    accepts_contingency = db.Column(db.Boolean, default=False, nullable=False)  # Accepts contingency fees
+    contingency_percentage = db.Column(db.Float, default=0.0, nullable=False)  # Contingency % if applicable
+    max_cases = db.Column(db.Integer, default=10, nullable=False)  # Maximum concurrent cases
+    current_cases = db.Column(db.Integer, default=0, nullable=False)  # Current active cases
 
     user = db.relationship("User", back_populates="lawyer_profile")
 
     def categories_list(self):
         return [c.strip() for c in self.expertise_categories.split(",") if c.strip()]
+    
+    def is_available_for_new_case(self):
+        """Check if lawyer can take on a new case."""
+        return self.is_available and self.current_cases < self.max_cases
 
 
 class Issue(db.Model):
@@ -71,6 +84,11 @@ class Issue(db.Model):
     title = db.Column(db.String(200), nullable=False)
     description = db.Column(db.Text, nullable=False)
     category = db.Column(db.String(100), nullable=False)
+    # Client profile fields for matching
+    budget_min = db.Column(db.Float, default=0.0, nullable=False)  # Minimum budget in USD
+    budget_max = db.Column(db.Float, default=10000.0, nullable=False)  # Maximum budget in USD
+    urgency = db.Column(db.String(20), default="normal", nullable=False)  # low, normal, high, urgent
+    preferred_pricing = db.Column(db.String(20), default="hourly", nullable=False)  # hourly, fixed, contingency
     created_at = db.Column(db.DateTime, default=datetime.utcnow)
 
     user = db.relationship("User", back_populates="issues")
