@@ -205,9 +205,9 @@ def lawyer_matches(issue_id):
         flash("You do not have access to this issue.", "error")
         return redirect(url_for("main.user_dashboard"))
 
-    # Use advanced matching algorithm (with fallback for old database schema)
+    # Use advanced matching algorithm with Priority Queue and Trie (with fallback for old database schema)
     try:
-        from .matching import match_lawyers_to_issue
+        from .advanced_matching import advanced_matcher
         
         # Check if issue has new fields (for backward compatibility)
         has_new_fields = hasattr(issue, 'budget_min') and hasattr(issue, 'urgency')
@@ -227,11 +227,11 @@ def lawyer_matches(issue_id):
                     if lp.user and lp.user.is_lawyer
                 ]
             
-            # Get matched lawyers with scores
-            matched_lawyers = match_lawyers_to_issue(issue, all_lawyers)
+            # Get matched lawyers using advanced Priority Queue algorithm
+            matched_results = advanced_matcher.match_lawyers(issue, all_lawyers, top_k=20)
             
-            # Filter to only show lawyers with score > 0
-            matched_lawyers = [(lawyer, score, breakdown) for lawyer, score, breakdown in matched_lawyers if score > 0]
+            # Format: (lawyer, score, breakdown, reasons) -> (lawyer, score, breakdown)
+            matched_lawyers = [(lawyer, score, breakdown) for lawyer, score, breakdown, _ in matched_results]
             
             print(f"Found {len(matched_lawyers)} matched lawyers for issue: {issue.title}")
         else:
