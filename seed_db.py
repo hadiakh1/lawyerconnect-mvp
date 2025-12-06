@@ -334,7 +334,7 @@ def seed_database():
                 expertise_categories=",".join(lawyer_data["expertise"]),
                 experience_description=lawyer_data["experience"],
                 rating=lawyer_data["rating"],
-                profile_picture=lawyer_data["profile_picture"],
+                profile_picture="default-avatar.png",  # Not used, but required by model
                 education=lawyer_data.get("education", ""),
                 age=lawyer_data.get("age", 0),
                 city=lawyer_data.get("city", ""),

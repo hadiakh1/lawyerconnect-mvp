@@ -377,3 +377,127 @@ def generate_jitsi_link(chat_id):
 
     flash("Video call link generated.", "success")
     return redirect(url_for("main.chat_view", chat_id=chat.id))
+
+
+# ============================================================================
+# TEMPORARY MIGRATION ENDPOINTS - Remove after Render setup
+# ============================================================================
+
+@main_bp.route("/admin/migrate", methods=["GET", "POST"])
+def run_migrations():
+    """One-time migration endpoint for Render deployment.
+    Visit: https://your-app.onrender.com/admin/migrate
+    """
+    try:
+        from app.extensions import db
+        from app.models import User, LawyerProfile, Issue, Chat, Message
+        import sys
+        import os
+        
+        # Create all tables
+        db.create_all()
+        
+        # Run migrations
+        sys.path.insert(0, os.path.dirname(os.path.dirname(__file__)))
+        
+        try:
+            from migrate_db_simple import migrate_database
+            migrate_database()
+            migration1 = "✅ Simple migration completed"
+        except Exception as e:
+            migration1 = f"⚠️ Simple migration: {str(e)}"
+        
+        try:
+            from migrate_db_advanced import migrate_database
+            migrate_database()
+            migration2 = "✅ Advanced migration completed"
+        except Exception as e:
+            migration2 = f"⚠️ Advanced migration: {str(e)}"
+        
+        return f"""
+        <html>
+        <head><title>Migrations Complete</title>
+        <style>
+            body {{ font-family: Arial; padding: 40px; max-width: 600px; margin: 0 auto; }}
+            h1 {{ color: #800020; }}
+            a {{ color: #800020; text-decoration: underline; }}
+            .success {{ color: green; }}
+            .warning {{ color: orange; }}
+            hr {{ margin: 30px 0; }}
+        </style>
+        </head>
+        <body>
+            <h1>✅ Migrations Complete!</h1>
+            <p><strong>Results:</strong></p>
+            <p class="success">{migration1}</p>
+            <p class="success">{migration2}</p>
+            <hr>
+            <p><a href="/admin/seed">Next: Seed Database →</a></p>
+            <p><a href="/">Go to Home</a></p>
+            <hr>
+            <p style="color: red; font-size: 12px;">
+                ⚠️ IMPORTANT: Remove /admin/migrate and /admin/seed endpoints after setup!
+            </p>
+        </body>
+        </html>
+        """
+    except Exception as e:
+        import traceback
+        return f"""
+        <html>
+        <head><title>Migration Error</title></head>
+        <body style="font-family: Arial; padding: 40px;">
+            <h1 style="color: red;">❌ Migration Error</h1>
+            <pre style="background: #f5f5f5; padding: 15px; overflow-x: auto;">{traceback.format_exc()}</pre>
+        </body>
+        </html>
+        """, 500
+
+
+@main_bp.route("/admin/seed", methods=["GET", "POST"])
+def seed_database():
+    """One-time database seeding endpoint for Render deployment.
+    Visit: https://your-app.onrender.com/admin/seed
+    """
+    try:
+        import sys
+        import os
+        sys.path.insert(0, os.path.dirname(os.path.dirname(__file__)))
+        from seed_db import seed_database
+        
+        seed_database()
+        
+        return """
+        <html>
+        <head><title>Database Seeded</title>
+        <style>
+            body { font-family: Arial; padding: 40px; max-width: 600px; margin: 0 auto; }
+            h1 { color: #800020; }
+            a { color: #800020; text-decoration: underline; }
+            hr { margin: 30px 0; }
+        </style>
+        </head>
+        <body>
+            <h1>✅ Database Seeded!</h1>
+            <p>Sample lawyers have been added successfully.</p>
+            <hr>
+            <p><a href="/">Go to Home</a></p>
+            <hr>
+            <p style="color: red; font-size: 12px;">
+                ⚠️ IMPORTANT: Remove /admin/migrate and /admin/seed endpoints after setup!
+            </p>
+        </body>
+        </html>
+        """
+    except Exception as e:
+        import traceback
+        return f"""
+        <html>
+        <head><title>Seeding Error</title></head>
+        <body style="font-family: Arial; padding: 40px;">
+            <h1 style="color: red;">❌ Seeding Error</h1>
+            <p>Make sure migrations ran first: <a href="/admin/migrate">Run Migrations</a></p>
+            <pre style="background: #f5f5f5; padding: 15px; overflow-x: auto;">{traceback.format_exc()}</pre>
+        </body>
+        </html>
+        """, 500
