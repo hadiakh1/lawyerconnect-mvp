@@ -4,7 +4,7 @@ Vercel serverless function entry point for LawyerConnect.
 IMPORTANT: Vercel doesn't support SQLite (read-only filesystem).
 You MUST use an external database (PostgreSQL, MySQL, etc.) for Vercel deployment.
 
-For SQLite support, use Render or Railway instead.
+For SQLite support, use Railway or Render instead.
 """
 import sys
 import os

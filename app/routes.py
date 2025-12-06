@@ -377,3 +377,7 @@ def generate_jitsi_link(chat_id):
 
     flash("Video call link generated.", "success")
     return redirect(url_for("main.chat_view", chat_id=chat.id))
+
+
+
+
