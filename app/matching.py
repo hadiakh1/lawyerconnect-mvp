@@ -214,3 +214,4 @@ def match_lawyers_to_issue(issue: Issue, all_lawyers: List[LawyerProfile]) -> Li
     
     return matches
 
+

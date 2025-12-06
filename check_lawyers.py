@@ -37,3 +37,4 @@ with app.app_context():
         
         print(f"\n{'='*60}")
 
+
